@@ -1,5 +1,7 @@
 package com.example.recyclerview;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -8,7 +10,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,13 +50,12 @@ public class MainActivity extends AppCompatActivity implements OnRecyclerViewIte
                 listItems.add(id);
             }
         }
-
+        Collections.sort(listItems);
         //Recycler Adapter
         startAdapter();
     }
 
     private void startAdapter(){
-        Collections.sort(listItems);
         mainModelArrayList = prepareList();
         mainRecyclerAdapter = new MainRecyclerAdapter(this,mainModelArrayList);
         mainRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
@@ -71,12 +74,67 @@ public class MainActivity extends AppCompatActivity implements OnRecyclerViewIte
     }
 
     @Override
-    public void onItemClick(int position, View view) {
+    public void onItemClick(final int position, View view) {
         MainModel mainModel = (MainModel) view.getTag();
         switch (view.getId()) {
             case R.id.row_main_adapter_linear_layout:
-                Toast.makeText(this,"Position clicked: " + String.valueOf(position) + ", "+ mainModel.getOfferName(),Toast.LENGTH_LONG).show();
+//                Toast.makeText(this,"Position clicked: " + String.valueOf(position) + ", "+ mainModel.getOfferName(),Toast.LENGTH_LONG).show();
+                final int curPosition = position;
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Option");
+                String[] option = {"Edit", "Delete"};
+                builder.setItems(option, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0: // edit
+                                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                LayoutInflater inflater = getLayoutInflater();
+                                final View dialogView = inflater.inflate(R.layout.alertdialog_edit_view, null);
+                                dialogBuilder.setView(dialogView);
 
+                                final EditText edt = dialogView.findViewById(R.id.updateValue);
+
+                                dialogBuilder.setTitle("Update Item");
+
+                                dialogBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        String insertedValue = edt.getText().toString();
+                                        if(insertedValue.length() != 0){
+                                            listItems.set(curPosition, edt.getText().toString());
+                                            Collections.sort(listItems);
+                                            startAdapter();
+                                        }else{
+                                            Toast.makeText(MainActivity.this, "Enter a value", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
+                                dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        //pass
+                                    }
+                                });
+                                AlertDialog b = dialogBuilder.create();
+                                b.show();
+                                break;
+
+                            case 1: // delete
+                                AlertDialog.Builder adb = new AlertDialog.Builder(MainActivity.this);
+                                adb.setTitle("Delete?");
+                                adb.setMessage("Are you sure you want to delete this item?");
+                                adb.setNegativeButton("Cancel", null);
+                                adb.setPositiveButton("Ok", new AlertDialog.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        listItems.remove(listItems.get(position));
+                                        startAdapter();
+                                    }});
+                                adb.show();
+                                break;
+                        }
+                    }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
                 break;
         }
     }
