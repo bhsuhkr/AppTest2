@@ -140,7 +140,14 @@ public class MainActivity extends AppCompatActivity implements OnRecyclerViewIte
     }
 
     public void addItems(View v) {
-        startActivity(new Intent(MainActivity.this, AddWorkActivity.class));
+        startActivity(new Intent(this, AddWorkActivity.class));
+    }
+
+    public void settingButtonClicked(View v) {
+//        startActivity(new Intent(this, UserSettingActivity.class));
+        Intent i = new Intent(this, UserSettingActivity.class);
+        startActivityForResult(i, 1);
+
     }
 
     @Override
@@ -175,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements OnRecyclerViewIte
             String data = prefs.getString("Text_Name", null); //no id: default value
             if(data.length() != 0){
                 listItems.add(data);
+                Collections.sort(listItems);
                 startAdapter();
             }
         }catch (Exception e){
